@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Relatório de Reunião Técnica - ECS vs BRKGA</title>
+
+  <style>
+    :root{
+      --bg: #eef3f8;
+      --paper: #ffffff;
+      --ink: #1f2937;
+      --muted: #667085;
+
+      --navy-900: #0f2740;
+      --navy-800: #163a63;
+      --navy-700: #1f4e79;
+      --navy-600: #2f6b9a;
+
+      --blue-50: #f5f9ff;
+      --blue-100: #e8f1fb;
+      --blue-200: #d7e6f5;
+
+      --line: #d9e2ec;
+      --line-strong: #c7d4e2;
+
+      --success-bg: #eefbf6;
+      --success-line: #a7dcc0;
+
+      --warning-bg: #fff8ea;
+      --warning-line: #efd197;
+
+      --danger-bg: #fff1f2;
+      --danger-line: #efb8c0;
+
+      --shadow-lg: 0 18px 42px rgba(15, 39, 64, 0.08);
+      --shadow-md: 0 10px 24px rgba(15, 39, 64, 0.06);
+      --shadow-sm: 0 6px 14px rgba(15, 39, 64, 0.05);
+
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+
+      --content-width: 1040px;
+    }
+
+    *{
+      box-sizing: border-box;
+    }
+
+    html{
+      scroll-behavior: smooth;
+    }
+
+    body{
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, #f8fbff 0%, #eef4fa 42%, #edf2f7 100%);
+      color: var(--ink);
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      line-height: 1.65;
+    }
+
+    .page{
+      width: 100%;
+      max-width: var(--content-width);
+      margin: 28px auto 60px;
+      padding: 0 18px;
+    }
+
+    /* =========================
+       CAPA
+       ========================= */
+
+    .hero{
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--navy-900) 0%, var(--navy-800) 45%, var(--navy-600) 100%);
+      color: #ffffff;
+      border-radius: 28px;
+      box-shadow: var(--shadow-lg);
+      padding: 36px 36px 30px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .hero::before,
+    .hero::after{
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      pointer-events: none;
+    }
+
+    .hero::before{
+      width: 320px;
+      height: 320px;
+      top: -150px;
+      right: -90px;
+    }
+
+    .hero::after{
+      width: 180px;
+      height: 180px;
+      bottom: -70px;
+      left: -40px;
+    }
+
+    .hero-inner{
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-top{
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .chip{
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.16);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .hero-mark{
+      text-align: right;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.84);
+      line-height: 1.35;
+      white-space: nowrap;
+    }
+
+    .hero h1{
+      margin: 0 0 12px 0;
+      font-size: 40px;
+      line-height: 1.06;
+      letter-spacing: -0.03em;
+      max-width: 800px;
+    }
+
+    .hero .subtitle{
+      margin: 0;
+      max-width: 850px;
+      font-size: 16px;
+      color: rgba(255,255,255,0.94);
+    }
+
+    .hero-divider{
+      height: 1px;
+      margin: 22px 0 18px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.10) 100%);
+    }
+
+    .meta-grid{
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .meta-card{
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 16px;
+      padding: 14px;
+      min-height: 92px;
+    }
+
+    .meta-card .k{
+      margin-bottom: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.76);
+    }
+
+    .meta-card .v{
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.35;
+      color: #ffffff;
+    }
+
+    /* =========================
+       SUMÁRIO
+       ========================= */
+
+    .toc{
+      margin-top: 22px;
+      background: rgba(255,255,255,0.97);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: var(--shadow-md);
+      padding: 24px 26px;
+    }
+
+    .toc-head{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .toc h2{
+      margin: 0;
+      font-size: 22px;
+      color: var(--navy-800);
+      letter-spacing: -0.02em;
+    }
+
+    .toc-note{
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .toc-grid{
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px 16px;
+    }
+
+    .toc a{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 12px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--ink);
+      background: linear-gradient(180deg, #ffffff 0%, #f9fbfe 100%);
+      border: 1px solid #edf2f7;
+      transition: 0.18s ease;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .toc a:hover{
+      transform: translateY(-1px);
+      background: var(--blue-50);
+      border-color: var(--blue-200);
+      color: var(--navy-800);
+    }
+
+    .toc a span{
+      width: 28px;
+      height: 28px;
+      flex: 0 0 28px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 999px;
+      background: var(--blue-100);
+      color: var(--navy-800);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    /* =========================
+       SEÇÕES
+       ========================= */
+
+    .section{
+      position: relative;
+      margin-top: 20px;
+      background: rgba(255,255,255,0.98);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: var(--shadow-md);
+      padding: 26px 28px 24px;
+      break-inside: auto;
+      page-break-inside: auto;
+    }
+
+    .section::before{
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 20px;
+      bottom: 20px;
+      width: 5px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--navy-700) 0%, var(--navy-600) 100%);
+    }
+
+    .section-header{
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+
+    .section-number{
+      width: 40px;
+      height: 40px;
+      flex: 0 0 40px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 12px;
+      background: linear-gradient(180deg, var(--navy-700) 0%, var(--navy-800) 100%);
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 800;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .section h2{
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      color: var(--navy-800);
+    }
+
+    .section h3{
+      margin: 20px 0 8px;
+      color: var(--navy-800);
+      font-size: 18px;
+      line-height: 1.35;
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+
+    .section p{
+      margin: 0 0 13px;
+      text-align: justify;
+      font-size: 15px;
+      color: var(--ink);
+      orphans: 3;
+      widows: 3;
+    }
+
+    /* =========================
+       BOXES
+       ========================= */
+
+    .info-grid{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .info-box{
+      background: linear-gradient(180deg, #ffffff 0%, #f9fbfe 100%);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .info-box strong{
+      display: block;
+      margin-bottom: 8px;
+      color: var(--navy-800);
+      font-size: 15px;
+      line-height: 1.35;
+    }
+
+    .highlight{
+      margin-top: 16px;
+      background: linear-gradient(180deg, #f5faff 0%, #edf5fd 100%);
+      border: 1px solid var(--blue-200);
+      border-left: 6px solid var(--navy-700);
+      border-radius: 16px;
+      padding: 18px 18px 16px;
+      box-shadow: var(--shadow-sm);
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .highlight p:last-child{
+      margin-bottom: 0;
+    }
+
+    .quote-box{
+      margin-top: 16px;
+      background: linear-gradient(180deg, #fbfcfe 0%, #f4f7fb 100%);
+      border: 1px dashed #b9c8d8;
+      border-radius: 16px;
+      padding: 16px 18px;
+      color: #334155;
+      font-size: 15px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .mini-summary{
+      background: linear-gradient(180deg, #f4fbf8 0%, #ebf8f1 100%);
+      border: 1px solid var(--success-line);
+      border-left: 6px solid #2f855a;
+      border-radius: 16px;
+      padding: 18px 18px 16px;
+      box-shadow: var(--shadow-sm);
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .mini-summary p:last-child{
+      margin-bottom: 0;
+    }
+
+    /* =========================
+       LISTAS
+       ========================= */
+
+    ul.clean,
+    ol.clean{
+      margin: 0;
+      padding-left: 22px;
+    }
+
+    ul.clean li,
+    ol.clean li{
+      margin-bottom: 10px;
+      font-size: 15px;
+      color: var(--ink);
+    }
+
+    .decision-list li{
+      padding-left: 3px;
+    }
+
+    .risk-list li::marker{
+      color: #b42318;
+    }
+
+    /* =========================
+       TAREFAS
+       ========================= */
+
+    .task{
+      margin-bottom: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .task:last-child{
+      margin-bottom: 0;
+    }
+
+    .task h4{
+      margin: 0 0 12px;
+      color: var(--navy-800);
+      font-size: 19px;
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+    }
+
+    .task-grid{
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 8px 14px;
+      font-size: 15px;
+      color: var(--ink);
+    }
+
+    .task-grid .label{
+      font-weight: 800;
+      color: #344054;
+    }
+
+    .badge{
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      vertical-align: middle;
+      border: 1px solid transparent;
+    }
+
+    .alta{
+      background: var(--danger-bg);
+      color: #b42318;
+      border-color: var(--danger-line);
+    }
+
+    .media{
+      background: var(--warning-bg);
+      color: #9a6700;
+      border-color: var(--warning-line);
+    }
+
+    .baixa{
+      background: var(--success-bg);
+      color: #027a48;
+      border-color: var(--success-line);
+    }
+
+    /* =========================
+       ROADMAP
+       ========================= */
+
+    .roadmap{
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .roadmap-card{
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px 18px 16px;
+      box-shadow: var(--shadow-sm);
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .roadmap-card h3{
+      margin: 0 0 10px;
+      color: var(--navy-800);
+      font-size: 19px;
+    }
+
+    /* =========================
+       RODAPÉ
+       ========================= */
+
+    .refs{
+      font-size: 15px;
+      color: var(--ink);
+    }
+
+    .footer-note{
+      margin-top: 18px;
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .print-hint{
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    /* =========================
+       IMPRESSÃO A4
+       ========================= */
+
+    @page{
+      size: A4;
+      margin: 14mm 13mm 14mm 13mm;
+    }
+
+    @media print{
+
+      html{
+        scroll-behavior: auto;
+      }
+
+      body{
+        margin: 0;
+        background: #ffffff !important;
+        color: #111111 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 10.8pt;
+        line-height: 1.46;
+      }
+
+      .page{
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      body, p, li, div, span, strong, h1, h2, h3, h4, a{
+        color: #111111 !important;
+      }
+
+      /* CAPA MAIS SEGURA NO PRINT */
+      .hero{
+        background: #ffffff !important;
+        color: #111111 !important;
+        border: 1.5px solid #b9c8d8 !important;
+        border-radius: 10px !important;
+        box-shadow: none !important;
+        padding: 14px 16px 12px !important;
+        overflow: visible !important;
+        page-break-inside: avoid;
+      }
+
+      .hero::before,
+      .hero::after{
+        display: none !important;
+        content: none !important;
+      }
+
+      .hero-top{
+        margin-bottom: 10px !important;
+      }
+
+      .chip{
+        background: #eef3f8 !important;
+        color: #163a63 !important;
+        border: 1px solid #cfd8e3 !important;
+        padding: 6px 10px !important;
+        font-size: 8.5pt !important;
+      }
+
+      .hero-mark{
+        color: #667085 !important;
+        font-size: 8.8pt !important;
+      }
+
+      .hero h1{
+        font-size: 21pt !important;
+        line-height: 1.08 !important;
+        color: #163a63 !important;
+        margin-bottom: 8px !important;
+      }
+
+      .hero .subtitle{
+        font-size: 10.2pt !important;
+        line-height: 1.4 !important;
+        color: #111111 !important;
+      }
+
+      .hero-divider{
+        background: #d8e2ec !important;
+        height: 1px !important;
+        margin: 12px 0 10px !important;
+      }
+
+      .meta-grid{
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px !important;
+      }
+
+      .meta-card{
+        min-height: auto !important;
+        background: #f8fafc !important;
+        border: 1px solid #d9e2ec !important;
+        box-shadow: none !important;
+        padding: 8px 9px !important;
+        border-radius: 8px !important;
+      }
+
+      .meta-card .k{
+        color: #667085 !important;
+        font-size: 7.8pt !important;
+        margin-bottom: 3px !important;
+      }
+
+      .meta-card .v{
+        color: #111111 !important;
+        font-size: 9.4pt !important;
+        line-height: 1.3 !important;
+      }
+
+      .toc{
+        background: #ffffff !important;
+        border: 1px solid #d9e2ec !important;
+        box-shadow: none !important;
+        border-radius: 10px !important;
+        padding: 12px 14px !important;
+        margin-top: 10px !important;
+      }
+
+      .toc h2{
+        color: #163a63 !important;
+        font-size: 13.2pt !important;
+      }
+
+      .toc-note{
+        color: #667085 !important;
+        font-size: 8.5pt !important;
+      }
+
+      .toc-grid{
+        grid-template-columns: 1fr 1fr;
+        gap: 5px 8px;
+      }
+
+      .toc a{
+        background: #f8fafc !important;
+        border: 1px solid #e6edf5 !important;
+        color: #111111 !important;
+        box-shadow: none !important;
+        padding: 7px 8px !important;
+        font-size: 9.2pt !important;
+        border-radius: 8px !important;
+      }
+
+      .toc a span{
+        background: #e8f1fb !important;
+        color: #163a63 !important;
+        width: 22px !important;
+        height: 22px !important;
+        flex-basis: 22px !important;
+        font-size: 9pt !important;
+      }
+
+      /* deixar seções quebráveis para evitar buracos */
+      .section{
+        background: #ffffff !important;
+        border: 1px solid #d9e2ec !important;
+        border-radius: 10px !important;
+        box-shadow: none !important;
+        padding: 14px 16px 12px !important;
+        margin-top: 10px !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+
+      .section::before{
+        background: #c8d4e3 !important;
+        width: 3px !important;
+        top: 10px !important;
+        bottom: 10px !important;
+      }
+
+      .section-header{
+        margin-bottom: 8px !important;
+      }
+
+      .section-number{
+        width: 26px !important;
+        height: 26px !important;
+        flex: 0 0 26px !important;
+        border-radius: 7px !important;
+        background: #163a63 !important;
+        color: #ffffff !important;
+        box-shadow: none !important;
+        font-size: 10.5pt !important;
+      }
+
+      .section h2{
+        color: #163a63 !important;
+        font-size: 14pt !important;
+      }
+
+      .section h3{
+        color: #163a63 !important;
+        font-size: 11pt !important;
+        margin-top: 10px !important;
+        margin-bottom: 4px !important;
+        page-break-after: avoid;
+      }
+
+      .section p,
+      .section li,
+      .task-grid,
+      .refs{
+        font-size: 9.9pt !important;
+        color: #111111 !important;
+      }
+
+      .section p{
+        margin-bottom: 9px !important;
+      }
+
+      .info-grid{
+        grid-template-columns: 1fr 1fr;
+        gap: 6px !important;
+      }
+
+      .info-box,
+      .highlight,
+      .quote-box,
+      .mini-summary,
+      .task,
+      .roadmap-card{
+        box-shadow: none !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .info-box{
+        background: #fafcff !important;
+        border: 1px solid #d9e2ec !important;
+        border-radius: 8px !important;
+        padding: 9px 10px !important;
+      }
+
+      .info-box strong{
+        color: #163a63 !important;
+        font-size: 9.8pt !important;
+        margin-bottom: 4px !important;
+      }
+
+      .highlight{
+        background: #f5f9ff !important;
+        border: 1px solid #d6e5f5 !important;
+        border-left: 4px solid #1f4e79 !important;
+        border-radius: 8px !important;
+        padding: 10px !important;
+      }
+
+      .mini-summary{
+        background: #f4fbf8 !important;
+        border: 1px solid #cfe8da !important;
+        border-left: 4px solid #2f855a !important;
+        border-radius: 8px !important;
+        padding: 10px !important;
+      }
+
+      .quote-box{
+        background: #fafcff !important;
+        border: 1px dashed #c5d2e0 !important;
+        border-radius: 8px !important;
+        padding: 10px !important;
+      }
+
+      .task{
+        background: #ffffff !important;
+        border: 1px solid #d9e2ec !important;
+        border-radius: 8px !important;
+        padding: 10px !important;
+        margin-bottom: 8px !important;
+      }
+
+      .task h4{
+        color: #163a63 !important;
+        font-size: 10.8pt !important;
+        margin-bottom: 6px !important;
+      }
+
+      .task-grid{
+        grid-template-columns: 110px 1fr !important;
+        gap: 4px 8px !important;
+      }
+
+      .task-grid .label{
+        color: #344054 !important;
+      }
+
+      .badge{
+        font-size: 7.8pt !important;
+        padding: 3px 8px !important;
+      }
+
+      .roadmap{
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px !important;
+      }
+
+      .roadmap-card{
+        background: #fafcff !important;
+        border: 1px solid #d9e2ec !important;
+        border-radius: 8px !important;
+        padding: 10px !important;
+      }
+
+      .roadmap-card h3{
+        color: #163a63 !important;
+        font-size: 10.8pt !important;
+        margin-bottom: 5px !important;
+      }
+
+      .footer-note{
+        color: #667085 !important;
+        font-size: 8.4pt !important;
+        margin-top: 10px !important;
+      }
+
+      .print-hint{
+        display: none !important;
+      }
+
+      a,
+      a:visited{
+        color: inherit !important;
+        text-decoration: none !important;
+      }
+    }
+
+    @media (max-width: 980px){
+      .hero-top{
+        flex-direction: column;
+      }
+
+      .hero-mark{
+        text-align: left;
+      }
+
+      .meta-grid,
+      .info-grid,
+      .roadmap,
+      .toc-grid{
+        grid-template-columns: 1fr;
+      }
+
+      .task-grid{
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <header class="hero">
+      <div class="hero-inner">
+        <div class="hero-top">
+          <div class="chip">Documento orientador da equipe</div>
+          <div class="hero-mark">
+            Relatório interno<br>
+            Versão otimizada para PDF A4
+          </div>
+        </div>
+
+        <h1>Relatório de Reunião Técnica</h1>
+        <p class="subtitle">
+          Planejamento de implementação, experimentação e possível submissão de artigo
+          envolvendo <strong>ECS (Evolutionary Clustering Search)</strong> versus
+          <strong>BRKGA</strong>, com foco em prototipação em Python, validação incremental
+          e organização de entregáveis semanais.
+        </p>
+
+        <div class="hero-divider"></div>
+
+        <div class="meta-grid">
+          <div class="meta-card">
+            <div class="k">Data da reunião</div>
+            <div class="v">10/03/2026</div>
+          </div>
+          <div class="meta-card">
+            <div class="k">Tema central</div>
+            <div class="v">ECS vs BRKGA</div>
+          </div>
+          <div class="meta-card">
+            <div class="k">Formato</div>
+            <div class="v">Reunião técnica de alinhamento</div>
+          </div>
+          <div class="meta-card">
+            <div class="k">Objetivo imediato</div>
+            <div class="v">Gerar resultados para possível SBPO</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="toc">
+      <div class="toc-head">
+        <h2>Sumário</h2>
+        <div class="toc-note">Navegação rápida do documento</div>
+      </div>
+
+      <div class="toc-grid">
+        <a href="#sec1"><span>1</span> Identificação da reunião</a>
+        <a href="#sec2"><span>2</span> Resumo executivo</a>
+        <a href="#sec3"><span>3</span> Ata da reunião</a>
+        <a href="#sec4"><span>4</span> Relatório técnico</a>
+        <a href="#sec5"><span>5</span> Decisões tomadas</a>
+        <a href="#sec6"><span>6</span> Lista de tarefas</a>
+        <a href="#sec7"><span>7</span> Roadmap imediato</a>
+        <a href="#sec8"><span>8</span> Riscos e pontos de atenção</a>
+        <a href="#sec9"><span>9</span> Resumo ultra curto</a>
+        <a href="#sec10"><span>10</span> Insights importantes</a>
+        <a href="#sec11"><span>11</span> Fundamentação teórica</a>
+        <a href="#sec12"><span>12</span> Referências-base</a>
+      </div>
+    </section>
+
+    <section class="section" id="sec1">
+      <div class="section-header">
+        <div class="section-number">1</div>
+        <h2>Identificação da reunião</h2>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-box">
+          <strong>Tema da reunião</strong>
+          Retomada e redefinição do projeto de pesquisa para implementação e avaliação
+          comparativa entre <strong>ECS (Evolutionary Clustering Search)</strong> e
+          <strong>BRKGA</strong>, com foco em resultados experimentais e possível submissão
+          de artigo ao SBPO.
+        </div>
+
+        <div class="info-box">
+          <strong>Data</strong>
+          10/03/2026
+        </div>
+
+        <div class="info-box">
+          <strong>Participantes identificados</strong>
+          Professor Alexandre, Dadilton e Fred (Frederic). Também foram citados
+          possíveis apoios de alunos de iniciação científica e colaboradores como
+          Raimundo, Maurício, Henrique e Thiago.
+        </div>
+
+        <div class="info-box">
+          <strong>Contexto do projeto</strong>
+          O projeto parte de uma linha anterior de implementação do ECS em C/C++,
+          originalmente associada à otimização contínua, e passa a ser reorganizado
+          com foco em uma nova base experimental em Python, mais adequada para
+          prototipação rápida, testes guiados por IA e organização sistemática dos
+          experimentos.
+        </div>
+      </div>
+
+      <div class="highlight">
+        <p>
+          <strong>Ponto-chave:</strong> a reunião definiu o foco conceitual do trabalho
+          para o <strong>ECS</strong>. O algoritmo discutido corresponde ao
+          <strong>Evolutionary Clustering Search</strong>, ligado à linha de Oliveira e Lorena,
+          com uso de clustering para identificar áreas promissoras e acionar intensificação
+          por busca local.
+        </p>
+      </div>
+    </section>
+
+    <section class="section" id="sec2">
+      <div class="section-header">
+        <div class="section-number">2</div>
+        <h2>Resumo executivo</h2>
+      </div>
+
+      <p>
+        A reunião teve como objetivo redefinir a estratégia de implementação e execução
+        de um projeto de pesquisa centrado na comparação entre o <strong>ECS</strong> e o
+        <strong>BRKGA</strong>. O grupo revisou o histórico do projeto anterior, avaliou as
+        limitações do caminho seguido até então e concluiu que a forma mais eficiente de
+        avançar no curto prazo é reconstruir a base experimental em <strong>Python</strong>,
+        com apoio intensivo de ferramentas de inteligência artificial para acelerar
+        prototipação, depuração e testes.
+      </p>
+      <p>
+        A hipótese principal discutida é que o algoritmo base do ECS pode apresentar
+        vantagens em relação ao BRKGA quando ambos operam sob o mesmo problema, mesma
+        codificação e mesma lógica geral de decodificação. A conversa também mostrou que
+        o artigo a ser eventualmente submetido ao <strong>SBPO</strong> dependerá da qualidade
+        dos resultados obtidos até março e abril, e não apenas de uma ideia teórica.
+        Além disso, foi debatida a possibilidade de sair do problema da mochila e avançar
+        para <strong>flow shop permutacional</strong>, considerado mais moderno e mais alinhado
+        a aplicações futuras em manufatura.
+      </p>
+      <p>
+        Como principal encaminhamento, ficou decidido que a equipe deve gerar um primeiro
+        núcleo funcional de implementação, estudar o BRKGA já disponível em Python, produzir
+        uma versão equivalente do ECS em Python e passar a operar com reuniões semanais,
+        sempre com entregáveis concretos. O prazo foi tratado como curto, mas estrategicamente
+        importante, pois resultados consistentes podem viabilizar publicação e impactar
+        diretamente o cronograma acadêmico de Dadilton.
+      </p>
+    </section>
+
+    <section class="section" id="sec3">
+      <div class="section-header">
+        <div class="section-number">3</div>
+        <h2>Ata da reunião (versão organizada)</h2>
+      </div>
+
+      <h3>3.1 Contexto apresentado</h3>
+      <p>
+        O professor Alexandre retomou o histórico do projeto anterior desenvolvido com
+        Dadilton, que envolvia uma implementação do ECS derivada de uma base em C voltada
+        à otimização contínua. Esse framework possuía funções contínuas pré-codificadas,
+        mecanismo de agrupamento de soluções e ativação de busca local quando determinados
+        clusters atingiam alta atividade, com intensificação a partir do centróide.
+      </p>
+      <p>
+        A proposta anterior previa inserir uma nova função binária que receberia um vetor
+        de números reais, o binarizaria por limiar e, a partir disso, interpretaria a
+        solução como uma instância de problema da mochila com combinações proibidas entre
+        itens. A vantagem desse problema era ser relativamente simples, atual e com instâncias
+        grandes já descritas na literatura.
+      </p>
+
+      <h3>3.2 Discussões principais</h3>
+      <p>
+        A hipótese central foi explicitada com maior precisão: a intenção não é alterar
+        simultaneamente vários elementos do modelo, mas comparar o <strong>algoritmo base do ECS</strong>
+        com o <strong>algoritmo base do BRKGA</strong>, preservando o restante da estrutura experimental
+        o mais constante possível. Isso permitiria avaliar se a diferença observada decorre
+        efetivamente da lógica de busca dos métodos e não de artefatos de modelagem.
+      </p>
+      <p>
+        O professor reforçou que o artigo não deve ser escrito “por tema”, mas orientado
+        pelos resultados efetivamente obtidos. Caso a hipótese principal não se sustente,
+        o foco do trabalho pode migrar para sub-hipóteses, ajustes de decodificação ou
+        novos enquadramentos experimentais.
+      </p>
+
+      <h3>3.3 Aspectos metodológicos debatidos</h3>
+      <p>
+        Foi enfatizada a diferença entre o ECS em espaço contínuo e sua adaptação para
+        problemas combinatórios. O ECS contínuo foi descrito como mais interpretável,
+        pois permite visualizar a formação de clusters e a dinâmica da busca local em
+        espaços euclidianos. Já o ECS combinatório foi considerado mais abstrato, exigindo
+        maior cuidado metodológico para explicar e demonstrar seu funcionamento.
+      </p>
+      <p>
+        Outro ponto importante foi a defesa de uma estratégia de prototipação rápida em
+        Python, aproveitando ferramentas de IA para geração incremental de código, testes
+        frequentes e validação contínua. A ideia central é evitar longos períodos sem
+        entregas e substituir isso por ciclos curtos de implementação e verificação.
+      </p>
+
+      <h3>3.4 Reorganização do plano de execução</h3>
+      <p>
+        A equipe discutiu duas alternativas: continuar a partir do código legado em C/C++
+        ou recomeçar do zero em Python. Ao final, prevaleceu o entendimento de que a
+        segunda alternativa é mais produtiva no curto prazo. Python foi escolhido por
+        facilitar ajustes, depuração, visualização e integração com assistentes de IA.
+      </p>
+      <p>
+        Também foi acordado que, em algum momento posterior, haverá necessidade de
+        migrar a implementação estabilizada para C/C++ a fim de permitir maior escala
+        experimental e execução em cluster.
+      </p>
+
+      <h3>3.5 Organização da equipe</h3>
+      <p>
+        Ficou definido que o professor Alexandre enviará o notebook do BRKGA em Python,
+        incluindo duas variantes de decodificação, e posteriormente enviará prompts para
+        orientar a geração incremental do ECS em Python. Dadilton e Fred irão atuar
+        diretamente no código, e não apenas em supervisão ou leitura. Também foi mencionada
+        a possibilidade de envolver alunos de iniciação científica na conversão de versões
+        estabilizadas para C/C++.
+      </p>
+
+      <h3>3.6 Rotina de acompanhamento</h3>
+      <p>
+        O grupo concordou em estabelecer reuniões semanais às quintas-feiras, com início
+        previsto para <strong>19/03/2026</strong>, sempre com entregáveis definidos. Essa rotina
+        foi considerada essencial para evitar a repetição do ritmo anterior, em que o
+        projeto avançava lentamente.
+      </p>
+    </section>
+
+    <section class="section" id="sec4">
+      <div class="section-header">
+        <div class="section-number">4</div>
+        <h2>Relatório técnico da discussão</h2>
+      </div>
+
+      <h3>4.1 Tecnologias e ferramentas mencionadas</h3>
+      <ul class="clean">
+        <li><strong>Python</strong> como linguagem principal para prototipação inicial.</li>
+        <li><strong>C/C++</strong> como linguagem-alvo para versão escalável e execução em cluster.</li>
+        <li><strong>ChatGPT, Gemini e Claude</strong> como ferramentas de apoio à implementação e refinamento de código.</li>
+        <li><strong>Excel</strong> e arquivos <strong>TXT</strong> como suporte para visualização posterior em cenários de execução massiva.</li>
+        <li><strong>Matlab</strong> foi citado como ferramenta historicamente usada para plotagens e manipulação de matrizes.</li>
+      </ul>
+
+      <h3>4.2 Algoritmos e métodos discutidos</h3>
+      <ul class="clean">
+        <li><strong>ECS (Evolutionary Clustering Search)</strong> como método principal de interesse.</li>
+        <li><strong>BRKGA</strong> como algoritmo de comparação principal.</li>
+        <li><strong>Steady-state genetic algorithm</strong> como base evolucionária rápida para o ECS.</li>
+        <li><strong>Busca local disparada por ativação de cluster</strong> como elemento distintivo do ECS.</li>
+        <li><strong>Decodificação binária por limiar</strong> para o problema da mochila.</li>
+        <li><strong>Decodificação por permutação</strong> para flow shop e outros problemas correlatos.</li>
+        <li><strong>Ordenação tradicional via quicksort</strong> e método alternativo de ordenação linear aproximada para permutações.</li>
+      </ul>
+
+      <h3>4.3 Problemas de otimização considerados</h3>
+      <p>
+        Inicialmente, o projeto estava ancorado em um <strong>problema da mochila com restrições
+        de combinações proibidas</strong>, cuja principal vantagem era permitir uma adaptação mais
+        simples do ECS contínuo para um contexto discreto. Posteriormente, a conversa passou
+        a considerar com mais força o <strong>flow shop permutacional</strong>, visto como problema
+        mais moderno, mais alinhado à manufatura e potencialmente mais relevante para a
+        agenda futura de pesquisa do orientador.
+      </p>
+
+      <h3>4.4 Comparação técnica entre ECS e BRKGA</h3>
+      <p>
+        A comparação proposta busca controlar os principais elementos experimentais. A ideia
+        é manter o mesmo problema, mesma estrutura de representação e condições semelhantes
+        de decodificação, alterando prioritariamente o <strong>núcleo algorítmico</strong>. Nesse
+        enquadramento, o ECS introduz a lógica de clustering e intensificação seletiva,
+        enquanto o BRKGA opera como referência consolidada baseada em random keys e viés
+        elitista.
+      </p>
+      <p>
+        O professor também relatou que já possui um BRKGA em Python com duas variantes
+        de decodificação para problemas de permutação: uma versão tradicional baseada em
+        quicksort e outra com um método alternativo de ordenação mais eficiente em alguns
+        testes preliminares. Segundo o relato, essa segunda alternativa já apresentou
+        melhora de tempo e, em várias execuções pequenas, também gerou soluções de melhor
+        qualidade média.
+      </p>
+
+      <h3>4.5 Estratégia de implementação</h3>
+      <p>
+        A implementação deve seguir uma lógica incremental: gerar pequenos blocos de código,
+        testar imediatamente, corrigir e seguir para a próxima etapa. O objetivo é obter
+        uma versão mínima funcional do ECS em Python, com capacidade de gerar instâncias,
+        executar experimentos, registrar resultados e produzir gráficos comparativos.
+      </p>
+      <p>
+        Depois de estabilizada, essa base pode servir para duas frentes: primeiro, a geração
+        de resultados suficientes para um artigo; segundo, a migração da implementação para
+        C/C++ e posterior execução em cluster em instâncias maiores.
+      </p>
+
+      <div class="highlight">
+        <p>
+          <strong>Síntese técnica:</strong> a reunião consolidou uma mudança de paradigma.
+          Em vez de tentar adaptar lentamente um código legado complexo, a equipe passará
+          a trabalhar com <strong>prototipação rápida, validação contínua e apoio de IA</strong>,
+          buscando acelerar a obtenção de resultados sem perder controle metodológico.
+        </p>
+      </div>
+    </section>
+
+    <section class="section" id="sec5">
+      <div class="section-header">
+        <div class="section-number">5</div>
+        <h2>Decisões tomadas</h2>
+      </div>
+
+      <ul class="clean decision-list">
+        <li>O método correto do projeto é o <strong>ECS (Evolutionary Clustering Search)</strong>.</li>
+        <li>A implementação inicial será priorizada em <strong>Python</strong>.</li>
+        <li>A equipe adotará uma estratégia de <strong>prototipação incremental com apoio de IA</strong>.</li>
+        <li>O <strong>BRKGA em Python</strong> já disponível será compartilhado com a equipe.</li>
+        <li>Será desenvolvida uma <strong>nova versão do ECS em Python</strong> para comparação experimental.</li>
+        <li>O projeto buscará gerar resultados ainda em março para iniciar redação de artigo em abril.</li>
+        <li>O <strong>SBPO</strong> foi assumido como oportunidade real de submissão, embora com risco devido ao prazo.</li>
+        <li>A equipe realizará <strong>reuniões semanais às quintas-feiras</strong>.</li>
+        <li>A próxima reunião ficou prevista para <strong>19/03/2026</strong>.</li>
+        <li>Fred participará diretamente do desenvolvimento do código.</li>
+        <li>Alunos de iniciação científica poderão ser envolvidos em etapas futuras, especialmente na conversão para C/C++.</li>
+      </ul>
+    </section>
+
+    <section class="section" id="sec6">
+      <div class="section-header">
+        <div class="section-number">6</div>
+        <h2>Lista de tarefas (formato backlog / Jira)</h2>
+      </div>
+
+      <div class="task">
+        <h4>Tarefa 1</h4>
+        <div class="task-grid">
+          <div class="label">Título</div>
+          <div>Compartilhar notebook e variantes do BRKGA em Python</div>
+
+          <div class="label">Descrição</div>
+          <div>
+            Enviar à equipe a implementação do BRKGA em Python, incluindo a versão
+            tradicional e a versão alternativa de decodificação, juntamente com orientações
+            de uso e execução.
+          </div>
+
+          <div class="label">Responsável</div>
+          <div>Professor Alexandre</div>
+
+          <div class="label">Prioridade</div>
+          <div><span class="badge alta">Alta</span></div>
+
+          <div class="label">Dependências</div>
+          <div>Nenhuma</div>
+        </div>
+      </div>
+
+      <div class="task">
+        <h4>Tarefa 2</h4>
+        <div class="task-grid">
+          <div class="label">Título</div>
+          <div>Estudar a estrutura do BRKGA recebido</div>
+
+          <div class="label">Descrição</div>
+          <div>
+            Ler o notebook compartilhado, compreender a lógica do algoritmo, a forma de
+            decodificação e os pontos de comparação que serão usados nos experimentos.
+          </div>
+
+          <div class="label">Responsável</div>
+          <div>Dadilton e Fred</div>
+
+          <div class="label">Prioridade</div>
+          <div><span class="badge alta">Alta</span></div>
+
+          <div class="label">Dependências</div>
+          <div>Tarefa 1</div>
+        </div>
+      </div>
+
+      <div class="task">
+        <h4>Tarefa 3</h4>
+        <div class="task-grid">
+          <div class="label">Título</div>
+          <div>Enviar prompts-base para geração incremental do ECS</div>
+
+          <div class="label">Descrição</div>
+          <div>
+            Encaminhar instruções e prompts para orientar a construção do ECS em Python
+            com checkpoints de validação.
+          </div>
+
+          <div class="label">Responsável</div>
+          <div>Professor Alexandre</div>
+
+          <div class="label">Prioridade</div>
+          <div><span class="badge alta">Alta</span></div>
+
+          <div class="label">Dependências</div>
+          <div>Nenhuma</div>
+        </div>
+      </div>
+
+      <div class="task">
+        <h4>Tarefa 4</h4>
+        <div class="task-grid">
+          <div class="label">Título</div>
+          <div>Construir primeira versão funcional do ECS em Python</div>
+
+          <div class="label">Descrição</div>
+          <div>
+            Implementar a primeira versão do ECS em Python, incluindo base evolucionária,
+            estrutura de clustering, lógica de análise/ativação e capacidade mínima de teste.
+          </div>
+
+          <div class="label">Responsável</div>
+          <div>Dadilton e Fred</div>
+
+          <div class="label">Prioridade</div>
+          <div><span class="badge alta">Alta</span></div>
+
+          <div class="label">Dependências</div>
+          <div>Tarefa 3</div>
+        </div>
+      </div>
+
+      <div class="task">
+        <h4>Tarefa 5</h4>
+        <div class="task-grid">
+          <div class="label">Título</div>
+          <div>Definir o problema-alvo inicial dos experimentos</div>
+
+          <div class="label">Descrição</div>
+          <div>
+            Consolidar se os primeiros testes serão feitos com a mochila com combinações
+            proibidas ou se a equipe migrará diretamente para flow shop permutacional.
+          </div>
+
+          <div class="label">Responsável</div>
+          <div>Professor Alexandre, com apoio de Dadilton e Fred</div>
+
+          <div class="label">Prioridade</div>
+          <div><span class="badge alta">Alta</span></div>
+
+          <div class="label">Dependências</div>
+          <div>Tarefas 2 e 4</div>
+        </div>
+      </div>
+
+      <div class="task">
+        <h4>Tarefa 6</h4>
+        <div class="task-grid">
+          <div class="label">Título</div>
+          <div>Executar testes preliminares comparativos</div>
+
+          <div class="label">Descrição</div>
+          <div>
+            Rodar experimentos iniciais comparando BRKGA e ECS em instâncias pequenas e
+            médias, registrando tempo, qualidade de solução e comportamento do método.
+          </div>
+
+          <div class="label">Responsável</div>
+          <div>Dadilton e Fred</div>
+
+          <div class="label">Prioridade</div>
+          <div><span class="badge alta">Alta</span></div>
+
+          <div class="label">Dependências</div>
+          <div>Tarefas 4 e 5</div>
+        </div>
+      </div>
+
+      <div class="task">
+        <h4>Tarefa 7</h4>
+        <div class="task-grid">
+          <div class="label">Título</div>
+          <div>Consolidar núcleo mínimo de resultados para artigo</div>
+
+          <div class="label">Descrição</div>
+          <div>
+            Organizar resultados, gráficos, observações e conclusões preliminares que
+            permitam iniciar a redação do artigo para o SBPO.
+          </div>
+
+          <div class="label">Responsável</div>
+          <div>Professor Alexandre, Dadilton e Fred</div>
+
+          <div class="label">Prioridade</div>
+          <div><span class="badge alta">Alta</span></div>
+
+          <div class="label">Dependências</div>
+          <div>Tarefa 6</div>
+        </div>
+      </div>
+
+      <div class="task">
+        <h4>Tarefa 8</h4>
+        <div class="task-grid">
+          <div class="label">Título</div>
+          <div>Planejar migração futura para C/C++</div>
+
+          <div class="label">Descrição</div>
+          <div>
+            Definir estratégia de conversão da implementação estabilizada em Python para
+            C/C++, visando desempenho, execução em cluster e ampliação de escala.
+          </div>
+
+          <div class="label">Responsável</div>
+          <div>Equipe ampliada com apoio de IC</div>
+
+          <div class="label">Prioridade</div>
+          <div><span class="badge media">Média</span></div>
+
+          <div class="label">Dependências</div>
+          <div>Versão Python estabilizada</div>
+        </div>
+      </div>
+
+      <div class="task">
+        <h4>Tarefa 9</h4>
+        <div class="task-grid">
+          <div class="label">Título</div>
+          <div>Distribuir subtarefas entre os membros principais</div>
+
+          <div class="label">Descrição</div>
+          <div>
+            Dividir o trabalho entre Dadilton, Fred e demais apoios, mantendo alinhamento
+            de ritmo e evitando gargalos críticos.
+          </div>
+
+          <div class="label">Responsável</div>
+          <div>Professor Alexandre</div>
+
+          <div class="label">Prioridade</div>
+          <div><span class="badge media">Média</span></div>
+
+          <div class="label">Dependências</div>
+          <div>Compartilhamento inicial do código</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="sec7">
+      <div class="section-header">
+        <div class="section-number">7</div>
+        <h2>Roadmap imediato do projeto</h2>
+      </div>
+
+      <div class="roadmap">
+        <div class="roadmap-card">
+          <h3>Curto prazo</h3>
+          <ul class="clean">
+            <li>Receber e estudar o BRKGA em Python.</li>
+            <li>Gerar a primeira versão funcional do ECS em Python.</li>
+            <li>Definir o problema-alvo inicial dos experimentos.</li>
+            <li>Executar testes preliminares e validar o pipeline.</li>
+            <li>Estabelecer a rotina semanal com entregáveis.</li>
+          </ul>
+        </div>
+
+        <div class="roadmap-card">
+          <h3>Médio prazo</h3>
+          <ul class="clean">
+            <li>Refinar o ECS e consolidar a comparação com BRKGA.</li>
+            <li>Ampliar o conjunto de instâncias e melhorar a análise experimental.</li>
+            <li>Produzir gráficos, tabelas e sínteses interpretativas.</li>
+            <li>Iniciar a redação do artigo com base nos resultados obtidos.</li>
+            <li>Revisar hipóteses, metodologia e pontos frágeis detectados na escrita.</li>
+          </ul>
+        </div>
+
+        <div class="roadmap-card">
+          <h3>Longo prazo</h3>
+          <ul class="clean">
+            <li>Migrar a implementação estabilizada para C/C++.</li>
+            <li>Executar experimentos em maior escala e possivelmente em cluster.</li>
+            <li>Adicionar outros concorrentes relevantes ao estudo.</li>
+            <li>Transformar os resultados em base sólida para qualificação e dissertação.</li>
+            <li>Explorar conexões com problemas de manufatura e pesquisa futura.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="sec8">
+      <div class="section-header">
+        <div class="section-number">8</div>
+        <h2>Riscos ou pontos de atenção</h2>
+      </div>
+
+      <ul class="clean risk-list">
+        <li><strong>Prazo curto</strong> para obtenção de resultados robustos antes do SBPO.</li>
+        <li><strong>Dependência de validação rigorosa</strong> do código gerado com apoio de IA.</li>
+        <li><strong>Risco de retrabalho</strong> quando a escrita do artigo revelar lacunas metodológicas.</li>
+        <li><strong>Possível indefinição do problema-alvo</strong> entre mochila e flow shop, o que pode dispersar foco.</li>
+        <li><strong>Necessidade futura de migração para C/C++</strong>, exigindo cuidado para não introduzir inconsistências.</li>
+        <li><strong>Interdependência forte entre Dadilton e Fred</strong>, o que pode gerar gargalos se o ritmo de execução for desigual.</li>
+        <li><strong>Escalabilidade limitada em Python</strong> para instâncias maiores, caso a versão inicial avance rapidamente.</li>
+        <li><strong>Risco de repetir o ciclo anterior</strong> se a equipe ficar muitos dias sem entregáveis mensuráveis.</li>
+      </ul>
+
+      <div class="quote-box">
+        <strong>Leitura estratégica do risco:</strong> o maior problema não parece ser técnico
+        isoladamente, mas de <strong>ritmo de execução + validação incremental</strong>. O projeto
+        avança se a equipe mantiver ciclos curtos, comparações controladas e checkpoints frequentes.
+      </div>
+    </section>
+
+    <section class="section" id="sec9">
+      <div class="section-header">
+        <div class="section-number">9</div>
+        <h2>Resumo ultra curto (Slack / Telegram / WhatsApp)</h2>
+      </div>
+
+      <div class="mini-summary">
+        <p>
+          A reunião de <strong>10/03/2026</strong> definiu a retomada do projeto com foco em
+          <strong>ECS vs BRKGA</strong>. A equipe decidiu reconstruir a base experimental em
+          <strong>Python</strong>, usando IA para acelerar a implementação e os testes.
+          O professor vai compartilhar o BRKGA e os prompts para geração do ECS.
+          Próxima etapa: produzir a primeira versão funcional e iniciar os experimentos.
+          As reuniões serão semanais, às quintas-feiras.
+        </p>
+      </div>
+    </section>
+
+    <section class="section" id="sec10">
+      <div class="section-header">
+        <div class="section-number">10</div>
+        <h2>Insights importantes</h2>
+      </div>
+
+      <ul class="clean">
+        <li>
+          A reunião consolidou a IA não apenas como ferramenta acessória, mas como
+          <strong>parte da estratégia operacional de implementação</strong>.
+        </li>
+        <li>
+          A explicabilidade do ECS contínuo foi reconhecida como um ativo importante para
+          sustentar argumentos metodológicos e visuais no artigo.
+        </li>
+        <li>
+          O projeto pode ganhar relevância adicional se migrar para um problema como
+          <strong>flow shop permutacional</strong>, que possui ligação mais direta com manufatura.
+        </li>
+        <li>
+          A escrita do artigo foi tratada como mecanismo de depuração científica: escrever
+          ajuda a identificar furos metodológicos e forças reais do trabalho.
+        </li>
+        <li>
+          A coexistência futura de versões em Python e C/C++ pode funcionar como
+          <strong>verificação cruzada</strong> de comportamento e depuração.
+        </li>
+        <li>
+          O sucesso do projeto depende menos de uma implementação “perfeita” no início e
+          mais de uma sequência disciplinada de entregas, testes e refinamentos.
+        </li>
+      </ul>
+    </section>
+
+    <section class="section" id="sec11">
+      <div class="section-header">
+        <div class="section-number">11</div>
+        <h2>Fundamentação teórica resumida do método</h2>
+      </div>
+
+      <p>
+        O algoritmo central da discussão é o <strong>ECS (Evolutionary Clustering Search)</strong>,
+        derivado da linha clássica de pesquisa de Oliveira e Lorena. A lógica do método combina
+        uma metaheurística evolucionária com um mecanismo de clustering que identifica regiões
+        promissoras do espaço de busca. Quando determinado cluster atinge alta relevância, a
+        busca local pode ser disparada para intensificar a exploração da região.
+      </p>
+
+      <p>
+        Na formulação clássica, o método pode ser entendido por componentes como:
+        geração evolucionária de soluções, agrupamento iterativo, análise da atividade dos
+        clusters e aplicação seletiva de busca local. Essa visão ajuda a compreender por que
+        o ECS foi tratado na reunião como mais interpretável no contexto contínuo do que em
+        adaptações combinatórias.
+      </p>
+
+      <p>
+        No contexto desta reunião, a importância teórica do ECS está em servir como contraponto
+        metodológico ao BRKGA. Enquanto o BRKGA é uma referência consolidada baseada em random
+        keys e elitismo, o ECS introduz a noção de <strong>detecção de áreas promissoras por
+        clustering</strong>, o que pode oferecer vantagens em certos cenários de exploração e
+        intensificação do espaço de busca.
+      </p>
+
+      <div class="highlight">
+        <p>
+          <strong>Interpretação aplicada para a equipe:</strong> o documento de reunião deixa
+          claro que o objetivo não é apenas implementar algoritmos, mas estruturar uma comparação
+          cientificamente defensável entre duas estratégias metaheurísticas, preservando controle
+          experimental e clareza conceitual.
+        </p>
+      </div>
+    </section>
+
+    <section class="section refs" id="sec12">
+      <div class="section-header">
+        <div class="section-number">12</div>
+        <h2>Referências-base citadas no contexto da reunião</h2>
+      </div>
+
+      <ol class="clean">
+        <li>
+          Oliveira, A. C. M.; Lorena, L. A. N. <strong>Detecting Promising Areas by Evolutionary Clustering Search</strong>.
+          Brazilian Symposium on Artificial Intelligence, 2004. Springer.
+        </li>
+        <li>
+          Oliveira, A. C. M.; Lorena, L. A. N. <strong>Hybrid Evolutionary Algorithms and Clustering Search</strong>.
+          In: Hybrid Evolutionary Algorithms, 2007. Springer.
+        </li>
+      </ol>
+
+      <p class="footer-note">
+        Documento elaborado a partir da transcrição da reunião técnica e reorganizado
+        em formato executivo, técnico e operacional para uso da equipe.
+      </p>
+    </section>
+
+    <div class="print-hint">
+      Dica: abra no navegador e use <strong>Ctrl + P</strong> → <strong>Salvar como PDF</strong>.
+    </div>
+  </div>
+</body>
+</html>

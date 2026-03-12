@@ -1,0 +1,10 @@
+[project]
+name = "ecs-brkga-research"
+version = "0.1.0"
+description = "Projeto de pesquisa sobre ECS, BRKGA, reuniões, experimentos e documentação técnica."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv]
+package = false
